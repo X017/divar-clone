@@ -38,10 +38,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'listing'
+    'django_filters',
+    #locally installed apps
+    'listing',
+    'accounts',
 ]
 
-MIDDLEWARE = [
+
+# settings.py
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+}
+
+
+
+
+MIDDLEWARE = [  
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -85,6 +97,11 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+
+
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
