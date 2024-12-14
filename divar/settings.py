@@ -48,6 +48,10 @@ INSTALLED_APPS = [
 # settings.py
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_AUTHTENTICATION': (
+        'rest_framework_simplejwt.authentication.JWTAuthentications',
+    )
+
 }
 
 
