@@ -25,15 +25,23 @@ class ListingListCreateView(generics.ListCreateAPIView):
     filterset_class = ListingFilters
     #permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request":self.request})
+        return context
+    
+
     def perform_create(self, serializer):
         user = self.request.user
         phone_number = user.phone_number
         # Ensure these fields are synced properly
         serializer.save(author=user, phone_number=phone_number)
 
+
+
 class ListingView(generics.ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = Listing.objects.all()
     serializer_class = ListingSerializer    
 
@@ -54,7 +62,19 @@ class SignUpAPI(APIView):
 
 
 class LogOutAPI(APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     def post(self, request, *args, **kwargs):
         request.auth.delete()
         return Response({"detail":"Successully logged out!"})
+    
+
+
+class CurrentUserListings(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ListingSerializer
+    def get_queryset(self):
+        user = self.request.user
+        return Listing.objects.filter(author=user)
+         

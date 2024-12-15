@@ -2,46 +2,48 @@ from rest_framework import serializers
 from listing.models import Listing, City, Place , Category
 from accounts.models import CustomUser
 
+
 class ListingSerializer(serializers.ModelSerializer):
-    author = serializers.SerializerMethodField()
-    phone_number = serializers.SerializerMethodField()
-    city  = serializers.SlugRelatedField(slug_field='city',queryset=City.objects.all())
-    place = serializers.SlugRelatedField(slug_field='section',queryset=Place.objects.all())
-    category = serializers.SlugRelatedField(slug_field='name',queryset=Category.objects.all())
+    city = serializers.SlugRelatedField(slug_field='city', queryset=City.objects.all())
+    place = serializers.SlugRelatedField(slug_field='section', queryset=Place.objects.all())
+    category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
+
     class Meta:
         model = Listing
-        fields = ['author', 'title', 'category', 'city', 'place', 'price', 'description']
+        fields = ['title', 'category', 'city', 'place', 'price', 'description', 'phone_number', 'author']
+        read_only_fields = ['author', 'phone_number']
 
-    def get_author(self, obj):
-        return obj.author.username
+    def create(self, validated_data):
+        request = self.context.get('request')
+        validated_data['author'] = request.user
+        validated_data['phone_number'] = request.user.phone_number
+        return super().create(validated_data)
 
-    def get_contact(self, obj):
-        return obj.contact.phone_number  # Assuming contact is a user and you want to get the phone number
-    def validate(self,data):
+    def validate(self, data):
         if data['place'].city != data['city']:
             raise serializers.ValidationError("The place does not belong to the selected city.")
         return data
 
+    
+
 class SignInSerializer(serializers.ModelSerializer):
-    # username = serializers.CharField()
-    # password = serializers.CharField()
-    # phone_number = serializers.CharField()
-# 
+    username = serializers.CharField()
+    password = serializers.CharField()
+    phone_number = serializers.CharField()
+
     class Meta:
         model = CustomUser
         fields = ('username','password','phone_number')
-        # extra_kwargs = {'password':{'write_only':True}}
+        extra_kwargs = {'password':{'write_only':True}}
 
 
-        def create(self, validated_data):
-            password = validated_data['password']
-            print(f"**{password}**")
-            user = CustomUser.objects.create(
-                username = validated_data['username'],
-                phone_number = validated_data['phone_number'],
+    def create(self, validated_data):
+        user = CustomUser.objects.create(
+            username = validated_data['username'],
+            phone_number = validated_data['phone_number'],
+        )
 
-            )
-            user.set_password(password=validated_data['password'])
-            user.save()
-            return user 
-         # Hash the raw password user.save() return 
+        user.set_password(validated_data['password'])
+        user.save()
+        return user 
+     # Hash the raw password user.save() return 
