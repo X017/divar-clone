@@ -4,16 +4,13 @@ print("#[@] Started CustomUser")
 class CustomUserManager(BaseUserManager):
     print('#[@] BaseUserManager started')
     def create_user(self, username, phone_number, password=None, **extra_fields):
-        print("create user called")
         if not username:
             raise ValueError('The Username field must be set')
         if not phone_number:
             raise ValueError('The Phone Number field must be set')
 
         user = self.model(username=username, phone_number=phone_number, **extra_fields)
-        print(user.password)
         user.set_password(password)  # Hashes the password
-
         user.save(using=self._db)
         return user
 
@@ -29,7 +26,6 @@ class CustomUserManager(BaseUserManager):
         user = self.create_user(username, phone_number, password, **extra_fields)
         v= user.set_password(password)
         user.save(using=self._db)
-        print(user)
         return user
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):

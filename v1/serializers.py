@@ -33,7 +33,7 @@ class SignInSerializer(serializers.ModelSerializer):
         # extra_kwargs = {'password':{'write_only':True}}
 
 
-        def save(self, validated_data):
+        def create(self, validated_data):
             password = validated_data['password']
             print(f"**{password}**")
             user = CustomUser.objects.create(
