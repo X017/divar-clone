@@ -29,7 +29,7 @@ class Listing(models.Model):
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     price = models.PositiveBigIntegerField(default=0)
     description = models.TextField(default='')
-    phone_number = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='contact_listings')
+    phone_number = models.CharField(max_length=15, blank=True, null=True) # Use CharField
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
