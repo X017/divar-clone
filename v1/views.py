@@ -39,7 +39,7 @@ class ListingListCreateView(generics.ListCreateAPIView):
 
 
 
-class ListingView(generics.ListCreateAPIView):
+class ListingView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
     queryset = Listing.objects.all()
