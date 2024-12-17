@@ -1,24 +1,21 @@
+from django.contrib.auth import login, logout
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated , AllowAny
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.viewsets import ModelViewSet
-
-
-from .serializers import ListingSerializer, SignInSerializer
-from .filters import ListingFilters
+from .permissions import IsAuthorOrReadOnly
 from listing.models import Listing
-from accounts.models import CustomUser
-from .permissions import IsAuthorEnabled
-from django.contrib.auth import login, logout
+
+from .filters import ListingFilters
+from .serializers import ListingSerializer, SignInSerializer
 
 class ListingListCreateView(generics.ListCreateAPIView):
     authentication_classes = [JWTAuthentication]    
-    permission_classes = [IsAuthenticated, IsAuthorEnabled]
+    permission_classes = [IsAuthenticated]
     queryset = Listing.objects.all()
     serializer_class = ListingSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -53,7 +50,7 @@ class SignUpAPI(APIView):
         
         if serializer.is_valid():
             user = serializer.save()
-            refresh = RefreshToken.for_user(user)
+            refresh = RefreshToken.for_user(user) # type: ignore[attr-defined]
             return Response({
                 'refresh':str(refresh),
                 'access':str(refresh.access_token)
@@ -77,4 +74,9 @@ class CurrentUserListings(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Listing.objects.filter(author=user)
-         
+    
+class ListingDeleteView(generics.RetrieveDestroyAPIView):
+        authentication_classes = [JWTAuthentication, IsAuthorOrReadOnly]
+        permission_classes = [IsAuthenticated]
+        serializer_class = ListingSerializer
+    
