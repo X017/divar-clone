@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from accounts.models import CustomUser
+import uuid
 
 class Category(models.Model):
     name = models.CharField(max_length=50)
@@ -22,6 +23,7 @@ class Place(models.Model):
         return f"{self.city} - {self.section}"
 
 class Listing(models.Model):
+    uid = models.UUIDField(default=uuid.uuid4,editable=False,unique=True)
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='author_listings')
     title = models.CharField(max_length=100)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -34,7 +36,7 @@ class Listing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.title} - {self.category.name} - {self.phone_number} created at {self.created_at}"
+        return f"{self.uid} - {self.category.name} - {self.phone_number} created at {self.created_at}"
     
     def save(self,*args, **kwargs):
         if self.place.city != self.city:
