@@ -7,11 +7,11 @@ class ListingSerializer(serializers.ModelSerializer):
     city = serializers.SlugRelatedField(slug_field='city', queryset=City.objects.all())
     place = serializers.SlugRelatedField(slug_field='section', queryset=Place.objects.all())
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
-
+    description = serializers.CharField(required=True)
     class Meta:
         model = Listing
         fields = ['title', 'category', 'city', 'place', 'price', 'description', 'phone_number', 'author']
-        read_only_fields = ['author', 'phone_number']
+        read_only_fields = ['author', 'phone_number', 'id','is_deleted']
 
     def create(self, validated_data):
         request = self.context.get('request')
