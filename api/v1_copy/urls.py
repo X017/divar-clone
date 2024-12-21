@@ -1,6 +1,6 @@
 from django.urls import path, include
 # from rest_framework.routers import DefaultRouter
-from .views import CurrentUserListings, ListingDeleteView, ListingListCreateView , ListingView, ShowOneListing, SignUpAPI
+from .views import CurrentUserListings, ListingDeleteView, ListingListCreateView , ListingView, SignUpAPI
 from rest_framework_simplejwt.views import (TokenObtainPairView,TokenRefreshView)
 
 urlpatterns = [
@@ -10,7 +10,6 @@ urlpatterns = [
     path('',ListingView.as_view(),name='main-page'),
     path('sign-up/',SignUpAPI.as_view(),name='sing-up'),
     path('login/',TokenObtainPairView.as_view(),name='token_obtain_pair'),
-    path('delete/<uuid:pk>',ListingDeleteView.as_view(),name='delete-listing'),
-    path('listing/',CurrentUserListings.as_view(),name='user-listing'),
-    path('listing/<uuid:pk>/',ShowOneListing.as_view())
+    path('delete/<int:pk>',ListingDeleteView.as_view(),name='delete-listing'),
+    path('listing/',CurrentUserListings.as_view(),name='user-listing')
 ]

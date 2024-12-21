@@ -80,6 +80,7 @@ class ListingDeleteView(generics.RetrieveDestroyAPIView):
         permission_classes = [IsAuthenticated]
         serializer_class = ListingSerializer
         def delete(self, request, pk,*args, **kwargs):
+            pk = pk
             listing = get_object_or_404(Listing,pk=pk)
             if listing.author == request.user:
                 listing.is_deleted = True

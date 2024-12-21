@@ -80,16 +80,10 @@ class ListingDeleteView(generics.RetrieveDestroyAPIView):
         permission_classes = [IsAuthenticated]
         serializer_class = ListingSerializer
         def delete(self, request, pk,*args, **kwargs):
+            pk = pk
             listing = get_object_or_404(Listing,pk=pk)
             if listing.author == request.user:
                 listing.is_deleted = True
                 listing.save()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(status=status.HTTP_403_FORBIDDEN)
-class ShowOneListing(generics.RetrieveAPIView):
-    queryset = Listing.objects.all()
-    serializer_class = ListingSerializer
-
-    def get_object(self):
-        obj = get_object_or_404(Listing,uid=self.kwargs['pk'])
-        return obj

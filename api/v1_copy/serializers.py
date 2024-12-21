@@ -10,8 +10,8 @@ class ListingSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=True)
     class Meta:
         model = Listing
-        fields = ['title', 'category', 'city', 'place', 'price', 'description', 'phone_number', 'author','uid']
-        read_only_fields = ['author', 'phone_number', 'uid','is_deleted']
+        fields = ['uid','title', 'category', 'city', 'place', 'price', 'description', 'phone_number', 'author']
+        read_only_fields = ['uid','author', 'phone_number','is_deleted']
 
     def create(self, validated_data):
         request = self.context.get('request')
