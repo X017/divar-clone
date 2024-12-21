@@ -37,11 +37,17 @@ class ListingHandler(viewsets.ModelViewSet):
         serializer.save(author=user, phone_number=phone_number)
 
     @action(detail=False, methods=['get'])
-    def show_user_listings(self, request):
+    def user_profile(self, request):
         user = self.request.user
-        listing = Listing.objects.filter(author=user)
+        listing = Listing.objects.filter(author=user,is_deleted=False)
         serializer = ListingSerializer(listing, many=True)
-        return Response(serializer.data)
+        user_data = {
+                "username":user.username,
+                "phone_number":user.phone_number,
+                "created_at":user.created_at,
+                "listings":serializer.data
+                }
+        return Response({"user_profle":user_data},status=status.HTTP_200_OK)
 
     def destroy(self, request, uid=None):
         listing = get_object_or_404(Listing, uid=uid)
@@ -49,7 +55,6 @@ class ListingHandler(viewsets.ModelViewSet):
         listing.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-
 
 class SignInAPI(APIView):
     permission_classes = [AllowAny]
