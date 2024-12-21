@@ -1,6 +1,9 @@
+from http.client import ResponseNotReady
 from django.contrib.auth import login, logout
+from django.core.serializers import serialize
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -15,23 +18,40 @@ from listing.models import Listing
 from .filters import ListingFilters
 from .serializers import ListingSerializer, SignInSerializer
 
-
 class ListingHandler(viewsets.ModelViewSet):
     queryset = Listing.objects.all()
     serializer_class = ListingSerializer
     lookup_field = 'uid'
-    authentication_classes = [JWTAuthentication] 
-    permission_classes = [IsAuthenticatedOrReadOnly,IsAuthenticatedOrReadOnly]
-    filterset_classes = ListingFilters
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = ListingFilters
+    http_method_names = ['get','post','patch','put','delete']
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset().filter(is_deleted=False)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         user = self.request.user
-        phone_number = self.request.user 
+        phone_number = user.phone_number  # Assuming user model has a phone_number field
         serializer.save(author=user, phone_number=phone_number)
 
+    @action(detail=False, methods=['get'])
+    def show_user_listings(self, request):
+        user = self.request.user
+        listing = Listing.objects.filter(author=user)
+        serializer = ListingSerializer(listing, many=True)
+        return Response(serializer.data)
+
+    def destroy(self, request, uid=None):
+        listing = get_object_or_404(Listing, uid=uid)
+        listing.is_deleted = True
+        listing.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
 
 
-
-class SignUpAPI(APIView):
+class SignInAPI(APIView):
     permission_classes = [AllowAny]
     def post(self,request, *args, **kwargs):
         serializer = SignInSerializer(data=request.data)
