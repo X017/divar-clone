@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-tzrfc&a_&8&eadjc&c!-cz-om15pngf7v&#01i^w8!4f#-z&95'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1','localhost']
 
@@ -51,8 +51,9 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_AUTHTENTICATION': (
         'rest_framework_simplejwt.authentication.JWTAuthentications',
-    )
-
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10
 }
 
 
@@ -138,10 +139,16 @@ USE_I18N = True
 
 USE_TZ = True
 
+#CELERY settings
+
+CELERY_TIME_ZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BROKER_URL = 'redis://localhost/0'
+CELERY_BACKEND_URL = CELERY_BROKER_URL
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
+# https://docs.djangoproject.com/en/5.1/howto/static-file
 STATIC_URL = 'static/'
 
 # Default primary key field type
