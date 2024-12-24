@@ -7,5 +7,6 @@ from .utils import code2fa
 @shared_task()
 def start_otp(note):
     note = code2fa()
+    print(note)
     return note
     

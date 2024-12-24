@@ -107,9 +107,13 @@ class CustomLoginAPI(APIView):
         username = request.data.get('username')
         phone_number = request.data.get('phone_number')
         queryset = CustomUser.objects.filter(username=username,phone_number=phone_number)
-        if queryset:
-            start_otp.delay("dsa")
-            return Response({"detail":"Succsses"})
+        
+        
+        if not queryset.exists():
+            return Response({"detail":"username or password doesnt exists!"})
+        else:
+            start_otp.delay("")
+            return Response({"detail":"Successully Started The Task!"})
         
 
 
