@@ -23,8 +23,8 @@ from .filters import ListingFilters
 from .serializers import ListingSerializer, SignInSerializer , TwoFactorSerializer
 from .pagination import CustomPagination
 from .tasks import start_otp
+from .utils import code2fa
 from accounts.models import CustomUser
-
 
 class ListingHandler(viewsets.ModelViewSet):
     queryset = Listing.objects.all()
@@ -115,7 +115,9 @@ class CustomLoginAPI(APIView):
             if not queryset.exists():
                 return Response({"detail":"username or password is incorrect!"})
             else:
-                start_otp.delay(phone_number)
+                two_factor_code = code2fa()
+                cache.set('otp',two_factor_code,timeout=300)
+                start_otp.delay(two_factor_code,phone_number)
                 return Response({"detail":"Successully Started The Task!"})
         
 
@@ -126,9 +128,7 @@ class TwoFactorLogin(APIView):
         serializer = TwoFactorSerializer(data=request.data)
         if serializer.is_valid():
             code = serializer.validated_data['tfa_code']
-            print(code)
-            cached_otp = cache.get('otp')
-            print('cached',cached_otp)
+            cached_otp = int(cache.get('otp'))
             if code == cached_otp:
 
                 user = users.first()
