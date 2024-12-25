@@ -1,3 +1,5 @@
+from django.core.serializers import serialize
+from django.utils.text import phone2numeric
 from rest_framework import serializers
 from listing.models import Listing, City, Place , Category
 from accounts.models import CustomUser
@@ -47,3 +49,12 @@ class SignInSerializer(serializers.ModelSerializer):
         user.save()
         return user 
      # Hash the raw password user.save() return 
+
+
+class TwoFactorSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    tfa_code = serializers.IntegerField()
+    class Meta:
+        fields = ('username','tfa_code')
+
+
