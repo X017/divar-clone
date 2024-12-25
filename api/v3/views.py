@@ -6,6 +6,7 @@ from django.db.models import query
 from django.http import request
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.cache import cache
 from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework import status
@@ -19,7 +20,7 @@ from .permissions import IsAuthorOrReadOnly
 from listing.models import Listing
 
 from .filters import ListingFilters
-from .serializers import ListingSerializer, SignInSerializer
+from .serializers import ListingSerializer, SignInSerializer , TwoFactorSerializer
 from .pagination import CustomPagination
 from .tasks import start_otp
 from accounts.models import CustomUser
@@ -103,18 +104,40 @@ class LogOutAPI(APIView):
     
 
 class CustomLoginAPI(APIView):
+    
+        def post(self,request,*args,**kwargs):
+
+            username = request.data.get('username')
+            phone_number = request.data.get('phone_number')
+            queryset = CustomUser.objects.filter(username=username,phone_number=phone_number)
+        
+        
+            if not queryset.exists():
+                return Response({"detail":"username or password is incorrect!"})
+            else:
+                start_otp.delay(phone_number)
+                return Response({"detail":"Successully Started The Task!"})
+        
+
+class TwoFactorLogin(APIView):
     def post(self,request,*args,**kwargs):
         username = request.data.get('username')
-        phone_number = request.data.get('phone_number')
-        queryset = CustomUser.objects.filter(username=username,phone_number=phone_number)
-        
-        
-        if not queryset.exists():
-            return Response({"detail":"username or password doesnt exists!"})
-        else:
-            start_otp.delay("")
-            return Response({"detail":"Successully Started The Task!"})
-        
+        users = CustomUser.objects.filter(username=username)
+        serializer = TwoFactorSerializer(data=request.data)
+        if serializer.is_valid():
+            code = serializer.validated_data['tfa_code']
+            print(code)
+            cached_otp = cache.get('otp')
+            print('cached',cached_otp)
+            if code == cached_otp:
 
-
-
+                user = users.first()
+                refresh = RefreshToken.for_user(user)
+                access_token = refresh.access_token
+                return Response({
+                    "access_token":str(access_token),
+                    "refresh":str(refresh)
+                    })
+            else:
+                return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
